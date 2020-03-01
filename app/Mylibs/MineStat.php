@@ -52,6 +52,7 @@ class MineStat
       print('passei 1');
       $start_time = explode(' ', microtime());
       $result = socket_connect($socket, $address, $port);
+      var_dump($result);
       $end_time = explode(' ', microtime());
       $this->latency = round(($end_time[0] - $start_time[0]) * 1000);
       if($result === false)
