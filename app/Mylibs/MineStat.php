@@ -49,6 +49,8 @@ class MineStat
         return;
       }
       $start_time = explode(' ', microtime());
+      socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 1, 'usec' => 0));
+      socket_set_option($socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 1, 'usec' => 0));
       $result = socket_connect($socket, $address, $port);
       $end_time = explode(' ', microtime());
       $this->latency = round(($end_time[0] - $start_time[0]) * 1000);
