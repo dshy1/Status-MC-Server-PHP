@@ -49,6 +49,7 @@ class MineStat
         $this->online = false;
         return;
       }
+      print('passei 1');
       $start_time = explode(' ', microtime());
       $result = socket_connect($socket, $address, $port);
       $end_time = explode(' ', microtime());
@@ -58,11 +59,12 @@ class MineStat
         $this->online = false;
         return;
       }
+      print('passei 2');
+
       $payload = "\xFE\x01";
       socket_write($socket, $payload, strlen($payload));
       $raw_data = socket_read($socket, MineStat::DATA_SIZE);
       socket_close($socket);
-      dd($result);
     }
     catch(Exception $e)
     {
