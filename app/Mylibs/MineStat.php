@@ -46,25 +46,24 @@ class MineStat
       socket_set_option($socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => $timeout, 'usec' => 0));
       if($socket === false)
       {
+        socket_close($socket);
         $this->online = false;
         return;
       }
-      print('passei 1');
       $start_time = explode(' ', microtime());
       $result = socket_connect($socket, $address, $port);
       if($result == false){
-          var_dump(socket_strerror(socket_last_error($socket)));
+        socket_close($socket);
+        var_dump(socket_strerror(socket_last_error($socket)));
       }
-      var_dump($result);
       $end_time = explode(' ', microtime());
       $this->latency = round(($end_time[0] - $start_time[0]) * 1000);
       if($result === false)
       {
+        socket_close($socket);
         $this->online = false;
         return;
       }
-      print('passei 2');
-
       $payload = "\xFE\x01";
       socket_write($socket, $payload, strlen($payload));
       $raw_data = socket_read($socket, MineStat::DATA_SIZE);
