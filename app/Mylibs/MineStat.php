@@ -19,118 +19,101 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-namespace App\Mylibs;
+ namespace App\Mylibs;
 
 class MineStat
 {
-  const DATA_SIZE = 1024;    // this will hopefully suffice since the MotD should be <=59 characters
-  const NUM_FIELDS = 6;     // number of values expected from server
-  private $address;
-  private $port;
-  private $online;          // online or offline?
-  private $version;         // Minecraft server version
-  private $motd;            // message of the day
-  private $current_players; // current number of players online
-  private $max_players;     // maximum player capacity
-  private $latency;         // ping time to server in milliseconds
+    const DATA_SIZE = 512;    // this will hopefully suffice since the MotD should be <=59 characters
+    const NUM_FIELDS = 6;     // number of values expected from server
+    private $address;
+    private $port;
+    private $online;          // online or offline?
+    private $version;         // Minecraft server version
+    private $motd;            // message of the day
+    private $current_players; // current number of players online
+    private $max_players;     // maximum player capacity
+    private $latency;         // ping time to server in milliseconds
 
-  public function __construct($address, $port, $timeout = 5)
-  {
-    $this->address = $address;
-    $this->port = $port;
-
-    try
+    public function __construct($address, $port, $timeout = 5)
     {
-      $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-      socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => $timeout, 'usec' => 0));
-      socket_set_option($socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => $timeout, 'usec' => 0));
-      if($socket === false)
-      {
-        socket_close($socket);
-        $this->online = false;
-        return;
-      }
-      $start_time = explode(' ', microtime());
-      $result = socket_connect($socket, $address, $port);
-      if($result == false){
-        socket_close($socket);
-        var_dump(socket_strerror(socket_last_error($socket)));
-      }
-      $end_time = explode(' ', microtime());
-      $this->latency = round(($end_time[0] - $start_time[0]) * 1000);
-      if($result === false)
-      {
-        socket_close($socket);
-        $this->online = false;
-        return;
-      }
-      $payload = "\xFE\x01";
-      socket_write($socket, $payload, strlen($payload));
-      $raw_data = socket_read($socket, MineStat::DATA_SIZE);
-      socket_close($socket);
+        $this->address = $address;
+        $this->port = $port;
+
+        try {
+            $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+            socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => $timeout, 'usec' => 0));
+            if ($socket === false) {
+                $this->online = false;
+                return;
+            }
+            $start_time = explode(' ', microtime());
+            $result = socket_connect($socket, $address, $port);
+            $end_time = explode(' ', microtime());
+            $this->latency = round(($end_time[0] - $start_time[0]) * 1000);
+            if ($result === false) {
+                $this->online = false;
+                return;
+            }
+            $payload = "\xFE\x01";
+            socket_write($socket, $payload, strlen($payload));
+            $raw_data = socket_read($socket, MineStat::DATA_SIZE);
+            socket_close($socket);
+        } catch (Exception $e) {
+            $this->online = false;
+            return;
+        }
+
+        if (isset($raw_data)) {
+            $server_info = explode("\x00\x00\x00", $raw_data);
+            if (isset($server_info) && sizeof($server_info) >= MineStat::NUM_FIELDS) {
+                $this->online = true;
+                $this->version = $server_info[2];
+                $this->motd = $server_info[3];
+                $this->current_players = $server_info[4];
+                $this->max_players = $server_info[5];
+            } else
+                $this->online = false;
+        } else
+            $this->online = false;
     }
-    catch(Exception $e)
+
+    public function get_address()
     {
-      $this->online = false;
-      return;
+        return $this->address;
     }
 
-    if(isset($raw_data))
+    public function get_port()
     {
-      $server_info = explode("\x00\x00\x00", $raw_data);
-      if(isset($server_info) && sizeof($server_info) >= MineStat::NUM_FIELDS)
-      {
-        $this->online = true;
-        $this->version = $server_info[2];
-        $this->motd = $server_info[3];
-        $this->current_players = $server_info[4];
-        $this->max_players = $server_info[5];
-      }
-      else
-        $this->online = false;
+        return $this->port;
     }
-    else
-      $this->online = false;
-  }
 
-  public function get_address()
-  {
-    return $this->address;
-  }
+    public function is_online()
+    {
+        return $this->online;
+    }
 
-  public function get_port()
-  {
-    return $this->port;
-  }
+    public function get_version()
+    {
+        return $this->version;
+    }
 
-  public function is_online()
-  {
-    return $this->online;
-  }
+    public function get_motd()
+    {
+        return $this->motd;
+    }
 
-  public function get_version()
-  {
-    return $this->version;
-  }
+    public function get_current_players()
+    {
+        return $this->current_players;
+    }
 
-  public function get_motd()
-  {
-    return $this->motd;
-  }
+    public function get_max_players()
+    {
+        return $this->max_players;
+    }
 
-  public function get_current_players()
-  {
-    return $this->current_players;
-  }
-
-  public function get_max_players()
-  {
-    return $this->max_players;
-  }
-
-  public function get_latency()
-  {
-    return $this->latency;
-  }
+    public function get_latency()
+    {
+        return $this->latency;
+    }
 }
-?>
