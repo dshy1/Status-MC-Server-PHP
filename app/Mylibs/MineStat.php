@@ -23,7 +23,7 @@ namespace App\Mylibs;
 
 class MineStat
 {
-  const DATA_SIZE = 512;    // this will hopefully suffice since the MotD should be <=59 characters
+  const DATA_SIZE = 1024;    // this will hopefully suffice since the MotD should be <=59 characters
   const NUM_FIELDS = 6;     // number of values expected from server
   private $address;
   private $port;
@@ -62,6 +62,7 @@ class MineStat
       socket_write($socket, $payload, strlen($payload));
       $raw_data = socket_read($socket, MineStat::DATA_SIZE);
       socket_close($socket);
+      dd($result);
     }
     catch(Exception $e)
     {
