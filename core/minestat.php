@@ -19,8 +19,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
- namespace App\Mylibs;
-
 class MineStat
 {
     const DATA_SIZE = 512;    // this will hopefully suffice since the MotD should be <=59 characters

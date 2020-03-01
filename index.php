@@ -1,5 +1,5 @@
 <?php
-require('../core/minestat.php');
+require('./core/minestat.php');
 
 $ip = '191.253.104.78';
 $port = '25565';
